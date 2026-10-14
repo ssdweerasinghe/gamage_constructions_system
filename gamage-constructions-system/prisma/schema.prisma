@@ -1,0 +1,66 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // Hashed password
+  role      String   @default("OWNER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JcbMachine {
+  id              String       @id @default(cuid())
+  plateNumber     String       @unique // e.g. "SP-CAB-4512"
+  modelName       String       // e.g. "JCB 3DX Super"
+  driverName      String
+  driverPhone     String
+  baseMeterHours  Float        @default(0.0)
+  status          String       @default("ACTIVE") // ACTIVE, MAINTENANCE, IDLE
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  incomeLogs      IncomeLog[]
+  expenseLogs     ExpenseLog[]
+}
+
+model IncomeLog {
+  id             String      @id @default(cuid())
+  jcbId          String
+  jcb            JcbMachine  @relation(fields: [jcbId], references: [id], onDelete: Cascade)
+  clientName     String
+  siteLocation   String
+  logDate        DateTime
+  startTime      String      // "08:30"
+  endTime        String      // "17:00"
+  durationHours  Float
+  points         Float       // Calculated points (1 pt = 1 hr, 0.1 pt = 6 min)
+  ratePerPoint   Float       @default(7000.0)
+  totalCharge    Float       // points * ratePerPoint
+  paymentStatus  String      @default("PENDING") // PENDING, PAID, PARTIAL
+  notes          String?
+  createdAt      DateTime    @default(now())
+}
+
+model ExpenseLog {
+  id             String      @id @default(cuid())
+  jcbId          String
+  jcb            JcbMachine  @relation(fields: [jcbId], references: [id], onDelete: Cascade)
+  expenseDate    DateTime
+  category       String      // FUEL, MAINTENANCE, REPAIR, SALARY, OTHER
+  amount         Float       // LKR amount
+  liters         Float?      // If category == FUEL
+  meterReading   Float?
+  description    String
+  createdAt      DateTime    @default(now())
+}
