@@ -21,7 +21,6 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("12:30");
 
-  // Live points computation
   const calc = calculatePoints(startTime, endTime);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -46,27 +45,27 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-6">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl text-slate-900 dark:text-white">
+      <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
         <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500">
           <Calculator className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-white">Log Operational Shift & Billing</h3>
-          <p className="text-xs text-slate-400">
+          <h3 className="text-lg font-bold">Log Operational Shift & Billing</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Real-time points engine: 1.0 pt = 1 hr, 0.1 pt = 6 min @ LKR 7,000.00/pt
           </p>
         </div>
       </div>
 
       {errorMsg && (
-        <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-semibold">
+        <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs font-semibold">
           {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div className="mb-5 p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-semibold flex items-center gap-2">
+        <div className="mb-5 p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{successMsg}</span>
         </div>
@@ -75,13 +74,13 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Select JCB Machine *
             </label>
             <select
               name="jcbId"
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="">-- Choose Equipment --</option>
               {jcbList.map((j) => (
@@ -93,11 +92,11 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Client / Contractor Name *
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                 <Building className="h-4 w-4" />
               </span>
               <input
@@ -105,17 +104,17 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
                 name="clientName"
                 required
                 placeholder="e.g. RDA Highway Subcontractor"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Site Location *
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                 <MapPin className="h-4 w-4" />
               </span>
               <input
@@ -123,7 +122,7 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
                 name="siteLocation"
                 required
                 placeholder="e.g. Matara bypass, Section 2"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
@@ -131,69 +130,54 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Shift Date *
             </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
-                <Calendar className="h-4 w-4" />
-              </span>
-              <input
-                type="date"
-                name="logDate"
-                defaultValue={new Date().toISOString().split("T")[0]}
-                required
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
+            <input
+              type="date"
+              name="logDate"
+              defaultValue={new Date().toISOString().split("T")[0]}
+              required
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Start Time *
             </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
-                <Clock className="h-4 w-4" />
-              </span>
-              <input
-                type="time"
-                name="startTime"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
+            <input
+              type="time"
+              name="startTime"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               End Time *
             </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
-                <Clock className="h-4 w-4" />
-              </span>
-              <input
-                type="time"
-                name="endTime"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
+            <input
+              type="time"
+              name="endTime"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              required
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Payment Status
             </label>
             <select
               name="paymentStatus"
               defaultValue="PENDING"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="PAID">PAID (Cash / Transfer)</option>
               <option value="PENDING">PENDING (Credit Invoice)</option>
@@ -203,43 +187,45 @@ export default function AddIncomeForm({ jcbList }: { jcbList: JcbOption[] }) {
         </div>
 
         {/* Live Calculation Display Box */}
-        <div className="p-4 bg-slate-950/80 border border-amber-500/30 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-          <div className="border-b sm:border-b-0 sm:border-r border-slate-800 pb-3 sm:pb-0 sm:pr-4">
-            <span className="text-xs text-slate-400 uppercase font-semibold">Total Shift Duration</span>
-            <p className="text-xl font-bold text-white mt-1">
+        <div className="p-4 bg-slate-50 dark:bg-slate-950/80 border border-amber-500/30 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+          <div className="border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-slate-800 pb-3 sm:pb-0 sm:pr-4">
+            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">
+              Total Shift Duration
+            </span>
+            <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
               {calc.durationHours} hrs{" "}
               <span className="text-xs text-slate-500 font-normal">({calc.totalMinutes} mins)</span>
             </p>
           </div>
 
-          <div className="border-b sm:border-b-0 sm:border-r border-slate-800 pb-3 sm:pb-0 sm:pr-4">
-            <span className="text-xs text-amber-500 uppercase font-bold tracking-wider">
+          <div className="border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-slate-800 pb-3 sm:pb-0 sm:pr-4">
+            <span className="text-xs text-amber-600 dark:text-amber-500 uppercase font-bold tracking-wider">
               Calculated Points
             </span>
-            <p className="text-2xl font-black text-amber-400 mt-0.5">
+            <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5">
               {calc.points.toFixed(1)} <span className="text-xs text-amber-500/70 font-bold">PTS</span>
             </p>
           </div>
 
           <div>
-            <span className="text-xs text-emerald-400 uppercase font-bold tracking-wider">
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 uppercase font-bold tracking-wider">
               Total Charge ({formatLKR(RATE_PER_POINT)}/pt)
             </span>
-            <p className="text-2xl font-black text-emerald-400 mt-0.5">
+            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
               {formatLKR(calc.totalCharge)}
             </p>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
             Shift Notes / Work Details (Optional)
           </label>
           <input
             type="text"
             name="notes"
             placeholder="e.g. Deep trench excavation and leveling"
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
 
