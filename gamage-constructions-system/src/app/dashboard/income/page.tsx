@@ -3,6 +3,7 @@ import { getIncomeLogs } from "@/app/actions/income";
 import { getJcbMachines } from "@/app/actions/jcb";
 import AddIncomeForm from "@/components/AddIncomeForm";
 import AdminDeleteButton from "@/components/AdminDeleteButton";
+import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import { getCurrentUser } from "@/lib/auth";
 import { formatLKR } from "@/lib/calculations";
 import { connection } from "next/server";
@@ -78,7 +79,7 @@ export default async function IncomePage() {
               Recorded Shift Invoices
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Detailed points breakdown and billing records
+              Generate work slips and view point breakdowns
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
@@ -102,90 +103,118 @@ export default async function IncomePage() {
                   <th className="px-5 py-3.5 text-center">Points</th>
                   <th className="px-5 py-3.5 text-right">Total Charge</th>
                   <th className="px-5 py-3.5 text-center">Status</th>
+                  <th className="px-5 py-3.5 text-center">Action</th>
                   {isAdmin && <th className="px-5 py-3.5 text-center">Admin</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium">
-                {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="px-5 py-4">
-                      <div className="font-mono text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-500 px-2 py-0.5 rounded inline-block mb-1 border border-amber-500/20">
-                        {log.jcb.plateNumber}
-                      </div>
-                      <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(log.logDate).toLocaleDateString("en-GB")}
-                      </div>
-                    </td>
+                {logs.map((log) => {
+                  const invoicePayload = {
+                    invoiceNumber: log.id.slice(-6).toUpperCase(),
+                    clientName: log.clientName,
+                    siteLocation: log.siteLocation,
+                    date: new Date(log.logDate).toLocaleDateString("en-GB"),
+                    jcbPlate: log.jcb.plateNumber,
+                    jcbModel: log.jcb.modelName,
+                    driverName: log.jcb.driverName,
+                    startTime: log.startTime,
+                    endTime: log.endTime,
+                    durationHours: log.durationHours,
+                    points: log.points,
+                    ratePerPoint: log.ratePerPoint,
+                    totalCharge: log.totalCharge,
+                    paymentStatus: log.paymentStatus,
+                    notes: log.notes,
+                  };
 
-                    <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-900 dark:text-white">
-                        {log.clientName}
-                      </div>
-                      <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                        <span>{log.siteLocation}</span>
-                      </div>
-                      {log.notes && (
-                        <div className="text-[11px] text-slate-500 italic mt-1 truncate max-w-xs">
-                          {log.notes}
+                  return (
+                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="px-5 py-4">
+                        <div className="font-mono text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-500 px-2 py-0.5 rounded inline-block mb-1 border border-amber-500/20">
+                          {log.jcb.plateNumber}
                         </div>
-                      )}
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200">
-                        <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <span>
-                          {log.startTime} - {log.endTime}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-500 font-normal">
-                        ({log.durationHours} hrs duration)
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4 text-center">
-                      <span className="inline-block px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono font-bold text-xs border border-amber-500/20">
-                        {log.points.toFixed(1)} PTS
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4 text-right">
-                      <span className="font-black text-slate-900 dark:text-white">
-                        {formatLKR(log.totalCharge)}
-                      </span>
-                      <span className="block text-[11px] text-slate-500">
-                        @ {formatLKR(log.ratePerPoint)}/pt
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${
-                          log.paymentStatus === "PAID"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                        }`}
-                      >
-                        {log.paymentStatus === "PAID" ? (
-                          <CheckCircle2 className="h-3 w-3" />
-                        ) : (
-                          <AlertCircle className="h-3 w-3" />
-                        )}
-                        {log.paymentStatus}
-                      </span>
-                    </td>
-
-                    {isAdmin && (
-                      <td className="px-5 py-4 text-center">
-                        <div className="flex justify-center">
-                          <AdminDeleteButton id={log.id} type="INCOME" />
+                        <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(log.logDate).toLocaleDateString("en-GB")}
                         </div>
                       </td>
-                    )}
-                  </tr>
-                ))}
+
+                      <td className="px-5 py-4">
+                        <div className="font-semibold text-slate-900 dark:text-white">
+                          {log.clientName}
+                        </div>
+                        <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                          <span>{log.siteLocation}</span>
+                        </div>
+                        {log.notes && (
+                          <div className="text-[11px] text-slate-500 italic mt-1 truncate max-w-xs">
+                            {log.notes}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200">
+                          <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          <span>
+                            {log.startTime} - {log.endTime}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 font-normal">
+                          ({log.durationHours} hrs duration)
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 text-center">
+                        <span className="inline-block px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono font-bold text-xs border border-amber-500/20">
+                          {log.points.toFixed(1)} PTS
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 text-right">
+                        <span className="font-black text-slate-900 dark:text-white">
+                          {formatLKR(log.totalCharge)}
+                        </span>
+                        <span className="block text-[11px] text-slate-500">
+                          @ {formatLKR(log.ratePerPoint)}/pt
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 text-center">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                            log.paymentStatus === "PAID"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                          }`}
+                        >
+                          {log.paymentStatus === "PAID" ? (
+                            <CheckCircle2 className="h-3 w-3" />
+                          ) : (
+                            <AlertCircle className="h-3 w-3" />
+                          )}
+                          {log.paymentStatus}
+                        </span>
+                      </td>
+
+                      {/* Work Slip Download Button */}
+                      <td className="px-5 py-4 text-center">
+                        <div className="flex justify-center">
+                          <DownloadInvoiceButton invoiceData={invoicePayload} />
+                        </div>
+                      </td>
+
+                      {isAdmin && (
+                        <td className="px-5 py-4 text-center">
+                          <div className="flex justify-center">
+                            <AdminDeleteButton id={log.id} type="INCOME" />
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
