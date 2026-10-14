@@ -3,6 +3,15 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatLKR } from "@/lib/calculations";
 
+type JsPDFWithAutoTable = jsPDF & {
+  lastAutoTable: {
+    finalY: number;
+  };
+};
+
+const getLastAutoTableFinalY = (doc: jsPDF) =>
+  (doc as JsPDFWithAutoTable).lastAutoTable.finalY;
+
 export interface InvoiceData {
   invoiceNumber: string;
   clientName: string;
@@ -165,7 +174,7 @@ export function generateShiftInvoicePDF(data: InvoiceData) {
     theme: "grid",
   });
 
-  const finalTableY = (doc as any).lastAutoTable.finalY + 8;
+  const finalTableY = getLastAutoTableFinalY(doc) + 8;
 
   // Notes if available
   if (data.notes) {
@@ -336,7 +345,7 @@ export function generateMonthlyStatementPDF(data: MonthlyStatementData) {
     theme: "striped",
   });
 
-  const nextY = (doc as any).lastAutoTable.finalY + 10;
+  const nextY = getLastAutoTableFinalY(doc) + 10;
 
   // Table 2: Expenses
   doc.setFontSize(11);

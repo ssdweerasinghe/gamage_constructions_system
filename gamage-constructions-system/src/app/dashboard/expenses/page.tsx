@@ -3,6 +3,7 @@ import { getExpenseLogs } from "@/app/actions/expense";
 import { getJcbMachines } from "@/app/actions/jcb";
 import { getDieselPrice } from "@/app/actions/config";
 import AddExpenseForm from "@/components/AddExpenseForm";
+import EditExpenseModal from "@/components/EditExpenseModal";
 import AdminDeleteButton from "@/components/AdminDeleteButton";
 import AdminDieselPriceModal from "@/components/AdminDieselPriceModal";
 import { getCurrentUser } from "@/lib/auth";
@@ -34,6 +35,12 @@ export default async function ExpensesPage() {
     .filter((e) => e.category === "FUEL" && e.liters)
     .reduce((acc, curr) => acc + (curr.liters || 0), 0);
 
+  const jcbOptions = jcbList.map((j) => ({
+    id: j.id,
+    plateNumber: j.plateNumber,
+    modelName: j.modelName,
+  }));
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -51,7 +58,6 @@ export default async function ExpensesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Admin Diesel Price Setting */}
           {isAdmin && <AdminDieselPriceModal currentPrice={dieselPrice} />}
 
           <div className="flex items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3 shadow-sm dark:shadow-none">
@@ -71,7 +77,7 @@ export default async function ExpensesPage() {
         </div>
       </div>
 
-      {/* Operational Expense Input Form with Live Diesel Price */}
+      {/* Operational Expense Input Form */}
       <AddExpenseForm
         jcbList={jcbList.map((j) => ({
           id: j.id,
@@ -112,7 +118,7 @@ export default async function ExpensesPage() {
                   <th className="px-5 py-3.5">Description</th>
                   <th className="px-5 py-3.5">Telemetry</th>
                   <th className="px-5 py-3.5 text-right">Amount (LKR)</th>
-                  {isAdmin && <th className="px-5 py-3.5 text-center">Admin</th>}
+                  {isAdmin && <th className="px-5 py-3.5 text-center">Admin Controls</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium">
@@ -184,7 +190,20 @@ export default async function ExpensesPage() {
 
                       {isAdmin && (
                         <td className="px-5 py-4 text-center">
-                          <div className="flex justify-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <EditExpenseModal
+                              expense={{
+                                id: item.id,
+                                jcbId: item.jcbId,
+                                category: item.category,
+                                expenseDate: item.expenseDate.toISOString(),
+                                amount: item.amount,
+                                liters: item.liters,
+                                meterReading: item.meterReading,
+                                description: item.description,
+                              }}
+                              jcbList={jcbOptions}
+                            />
                             <AdminDeleteButton id={item.id} type="EXPENSE" />
                           </div>
                         </td>

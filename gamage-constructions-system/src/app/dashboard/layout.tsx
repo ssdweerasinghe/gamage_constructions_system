@@ -12,6 +12,7 @@ import {
   Building2,
   ShieldCheck,
   UserCheck,
+  BookOpenCheck,
 } from "lucide-react";
 
 export default async function DashboardLayout({
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
     { name: "Executive Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "JCB Machinery Fleet", href: "/dashboard/jcb", icon: Truck },
     { name: "Operational Income", href: "/dashboard/income", icon: DollarSign },
+    { name: "Client Debts (Ledger)", href: "/dashboard/clients", icon: BookOpenCheck },
     { name: "Fleet Expenses", href: "/dashboard/expenses", icon: TrendingDown },
   ];
 

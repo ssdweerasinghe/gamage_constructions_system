@@ -2,6 +2,7 @@
 import { getIncomeLogs } from "@/app/actions/income";
 import { getJcbMachines } from "@/app/actions/jcb";
 import AddIncomeForm from "@/components/AddIncomeForm";
+import EditIncomeModal from "@/components/EditIncomeModal";
 import AdminDeleteButton from "@/components/AdminDeleteButton";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import { getCurrentUser } from "@/lib/auth";
@@ -27,6 +28,12 @@ export default async function IncomePage() {
   const isAdmin = user?.role === "ADMIN";
   const totalRevenue = logs.reduce((acc, curr) => acc + curr.totalCharge, 0);
   const totalPoints = logs.reduce((acc, curr) => acc + curr.points, 0);
+
+  const jcbOptions = jcbList.map((j) => ({
+    id: j.id,
+    plateNumber: j.plateNumber,
+    modelName: j.modelName,
+  }));
 
   return (
     <div className="space-y-8">
@@ -104,7 +111,7 @@ export default async function IncomePage() {
                   <th className="px-5 py-3.5 text-right">Total Charge (LKR)</th>
                   <th className="px-5 py-3.5 text-center">Status</th>
                   <th className="px-5 py-3.5 text-center">Slip</th>
-                  {isAdmin && <th className="px-5 py-3.5 text-center">Admin</th>}
+                  {isAdmin && <th className="px-5 py-3.5 text-center">Admin Controls</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium">
@@ -156,7 +163,7 @@ export default async function IncomePage() {
                         )}
                       </td>
 
-                      {/* PRIMARY: Billed Points */}
+                      {/* Points */}
                       <td className="px-5 py-4 text-center">
                         <span className="inline-block px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 font-mono font-black text-sm border border-amber-500/30">
                           {log.points.toFixed(1)} PTS
@@ -208,10 +215,23 @@ export default async function IncomePage() {
                         </div>
                       </td>
 
-                      {/* Admin Delete */}
+                      {/* Admin Controls */}
                       {isAdmin && (
                         <td className="px-5 py-4 text-center">
-                          <div className="flex justify-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <EditIncomeModal
+                              log={{
+                                id: log.id,
+                                jcbId: log.jcbId,
+                                clientName: log.clientName,
+                                siteLocation: log.siteLocation,
+                                logDate: log.logDate.toISOString(),
+                                points: log.points,
+                                paymentStatus: log.paymentStatus,
+                                notes: log.notes,
+                              }}
+                              jcbList={jcbOptions}
+                            />
                             <AdminDeleteButton id={log.id} type="INCOME" />
                           </div>
                         </td>

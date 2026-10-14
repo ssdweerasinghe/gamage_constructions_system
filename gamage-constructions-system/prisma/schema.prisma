@@ -1,74 +1,84 @@
-// prisma/schema.prisma
-
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   email     String   @unique
   name      String
-  password  String   // Hashed password
-  role      String   @default("OWNER")
+  password  String
+  role      String   @default("OWNER") // OWNER or ADMIN
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model JcbMachine {
-  id              String       @id @default(cuid())
-  plateNumber     String       @unique // e.g. "SP-CAB-4512"
-  modelName       String       // e.g. "JCB 3DX Super"
-  driverName      String
-  driverPhone     String
-  baseMeterHours  Float        @default(0.0)
-  status          String       @default("ACTIVE") // ACTIVE, MAINTENANCE, IDLE
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  incomeLogs      IncomeLog[]
-  expenseLogs     ExpenseLog[]
+  id             String       @id @default(uuid())
+  plateNumber    String       @unique
+  modelName      String
+  driverName     String
+  driverPhone    String
+  baseMeterHours Float        @default(0.0)
+  status         String       @default("ACTIVE") // ACTIVE, MAINTENANCE, IDLE
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  incomeLogs     IncomeLog[]
+  expenseLogs    ExpenseLog[]
 }
 
 model IncomeLog {
-  id             String      @id @default(cuid())
-  jcbId          String
-  jcb            JcbMachine  @relation(fields: [jcbId], references: [id], onDelete: Cascade)
-  clientName     String
-  siteLocation   String
-  logDate        DateTime
-  startTime      String      // "08:30"
-  endTime        String      // "17:00"
-  durationHours  Float
-  points         Float       // Calculated points (1 pt = 1 hr, 0.1 pt = 6 min)
-  ratePerPoint   Float       @default(7000.0)
-  totalCharge    Float       // points * ratePerPoint
-  paymentStatus  String      @default("PENDING") // PENDING, PAID, PARTIAL
-  notes          String?
-  createdAt      DateTime    @default(now())
+  id            String          @id @default(uuid())
+  jcbId         String
+  jcb           JcbMachine      @relation(fields: [jcbId], references: [id], onDelete: Cascade)
+  clientName    String
+  siteLocation  String
+  logDate       DateTime
+  startTime     String          @default("08:00")
+  endTime       String          @default("N/A")
+  durationHours Float
+  points        Float
+  ratePerPoint  Float           @default(7000.0)
+  totalCharge   Float
+  amountPaid    Float           @default(0.0)
+  paymentStatus String          @default("PENDING") // PENDING, PARTIAL, PAID
+  notes         String?
+  payments      PaymentRecord[]
+  createdAt     DateTime        @default(now())
 }
 
 model ExpenseLog {
-  id             String      @id @default(cuid())
-  jcbId          String
-  jcb            JcbMachine  @relation(fields: [jcbId], references: [id], onDelete: Cascade)
-  expenseDate    DateTime
-  category       String      // FUEL, MAINTENANCE, REPAIR, SALARY, OTHER
-  amount         Float       // LKR amount
-  liters         Float?      // If category == FUEL
-  meterReading   Float?
-  description    String
-  createdAt      DateTime    @default(now())
+  id           String     @id @default(uuid())
+  jcbId        String
+  jcb          JcbMachine @relation(fields: [jcbId], references: [id], onDelete: Cascade)
+  expenseDate  DateTime
+  category     String     @default("MAINTENANCE") // FUEL, MAINTENANCE, REPAIR, SALARY, OTHER
+  amount       Float
+  liters       Float?
+  meterReading Float?
+  description  String
+  createdAt    DateTime   @default(now())
+}
+
+model PaymentRecord {
+  id          String    @id @default(uuid())
+  incomeLogId String
+  incomeLog   IncomeLog @relation(fields: [incomeLogId], references: [id], onDelete: Cascade)
+  amount      Float
+  paymentDate DateTime  @default(now())
+  note        String?
+  recordedBy  String?
+  createdAt   DateTime  @default(now())
 }
 
 model SystemConfig {
   id          String   @id @default(uuid())
-  key         String   @unique // e.g. "DIESEL_PRICE_PER_LITER"
-  value       String   // e.g. "330.00"
+  key         String   @unique
+  value       String
   description String?
   updatedAt   DateTime @updatedAt
 }

@@ -1,6 +1,7 @@
 // src/app/dashboard/jcb/page.tsx
 import { getJcbMachines } from "@/app/actions/jcb";
 import AddJcbModal from "@/components/AddJcbModal";
+import EditJcbModal from "@/components/EditJcbModal";
 import AdminDeleteButton from "@/components/AdminDeleteButton";
 import { getCurrentUser } from "@/lib/auth";
 import { connection } from "next/server";
@@ -51,7 +52,7 @@ export default async function JcbFleetPage() {
                     <span className="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 font-mono font-bold text-sm">
                       {jcb.plateNumber}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span
                         className={`text-xs font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${
                           isWorking
@@ -66,7 +67,12 @@ export default async function JcbFleetPage() {
                         {!isWorking && !inMaint && <AlertTriangle className="h-3 w-3" />}
                         {jcb.status}
                       </span>
-                      {isAdmin && <AdminDeleteButton id={jcb.id} type="JCB" />}
+                      {isAdmin && (
+                        <div className="flex items-center gap-0.5 ml-1 border-l border-slate-200 dark:border-slate-800 pl-1.5">
+                          <EditJcbModal machine={jcb} />
+                          <AdminDeleteButton id={jcb.id} type="JCB" />
+                        </div>
+                      )}
                     </div>
                   </div>
 
