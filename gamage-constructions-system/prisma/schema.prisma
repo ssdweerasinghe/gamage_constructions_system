@@ -64,3 +64,11 @@ model ExpenseLog {
   description    String
   createdAt      DateTime    @default(now())
 }
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique // e.g. "DIESEL_PRICE_PER_LITER"
+  value       String   // e.g. "330.00"
+  description String?
+  updatedAt   DateTime @updatedAt
+}

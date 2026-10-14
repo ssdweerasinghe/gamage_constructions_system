@@ -23,37 +23,24 @@ export default async function DashboardPage() {
 
   const isProfitable = metrics.netProfit >= 0;
 
-  // Prepare current month statement payload
-  const currentMonthName = new Date().toLocaleString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  // Format data for the month/year selection modal
+  const rawShifts = allIncomes.map((i) => ({
+    date: i.logDate.toISOString(),
+    jcbPlate: i.jcb.plateNumber,
+    client: i.clientName,
+    hours: i.durationHours,
+    points: i.points,
+    amount: i.totalCharge,
+    status: i.paymentStatus,
+  }));
 
-  const statementPayload = {
-    monthYear: currentMonthName,
-    totalShifts: allIncomes.length,
-    totalHours: allIncomes.reduce((sum, item) => sum + item.durationHours, 0),
-    totalPoints: allIncomes.reduce((sum, item) => sum + item.points, 0),
-    grossIncome: metrics.totalIncome,
-    totalExpenses: metrics.totalExpenses,
-    netProfit: metrics.netProfit,
-    shifts: allIncomes.map((i) => ({
-      date: new Date(i.logDate).toLocaleDateString("en-GB"),
-      jcbPlate: i.jcb.plateNumber,
-      client: i.clientName,
-      hours: i.durationHours,
-      points: i.points,
-      amount: i.totalCharge,
-      status: i.paymentStatus,
-    })),
-    expenses: allExpenses.map((e) => ({
-      date: new Date(e.expenseDate).toLocaleDateString("en-GB"),
-      jcbPlate: e.jcb.plateNumber,
-      category: e.category,
-      description: e.description,
-      amount: e.amount,
-    })),
-  };
+  const rawExpenses = allExpenses.map((e) => ({
+    date: e.expenseDate.toISOString(),
+    jcbPlate: e.jcb.plateNumber,
+    category: e.category,
+    description: e.description,
+    amount: e.amount,
+  }));
 
   return (
     <div className="space-y-8">
@@ -72,7 +59,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <ExportMonthlyReportButton data={statementPayload} />
+          <ExportMonthlyReportButton shifts={rawShifts} expenses={rawExpenses} />
           <a
             href="/dashboard/income"
             className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-amber-500/20 text-xs transition-all active:scale-95"

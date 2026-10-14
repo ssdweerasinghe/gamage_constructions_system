@@ -1,8 +1,10 @@
 // src/app/dashboard/expenses/page.tsx
 import { getExpenseLogs } from "@/app/actions/expense";
 import { getJcbMachines } from "@/app/actions/jcb";
+import { getDieselPrice } from "@/app/actions/config";
 import AddExpenseForm from "@/components/AddExpenseForm";
 import AdminDeleteButton from "@/components/AdminDeleteButton";
+import AdminDieselPriceModal from "@/components/AdminDieselPriceModal";
 import { getCurrentUser } from "@/lib/auth";
 import { formatLKR } from "@/lib/calculations";
 import { connection } from "next/server";
@@ -12,7 +14,6 @@ import {
   Calendar,
   Gauge,
   TrendingDown,
-  DollarSign,
   FileSpreadsheet,
   AlertTriangle,
   UserCheck,
@@ -20,10 +21,11 @@ import {
 
 export default async function ExpensesPage() {
   await connection();
-  const [expenses, jcbList, user] = await Promise.all([
+  const [expenses, jcbList, user, dieselPrice] = await Promise.all([
     getExpenseLogs(),
     getJcbMachines(),
     getCurrentUser(),
+    getDieselPrice(),
   ]);
 
   const isAdmin = user?.role === "ADMIN";
@@ -44,33 +46,39 @@ export default async function ExpensesPage() {
             </span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Fuel consumption, routine maintenance, greasing, and spare parts.
+            Fuel refills, routine maintenance, greasing, and spare parts.
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3 shadow-sm dark:shadow-none">
-          <div>
-            <span className="text-xs text-slate-500 block">Total Outflow</span>
-            <span className="text-lg font-black text-rose-600 dark:text-rose-400">
-              {formatLKR(totalExpenseAmount)}
-            </span>
-          </div>
-          <div className="border-l border-slate-200 dark:border-slate-800 pl-4">
-            <span className="text-xs text-slate-500 block">Total Diesel</span>
-            <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
-              {totalFuelLiters.toFixed(1)} L
-            </span>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Admin Diesel Price Setting */}
+          {isAdmin && <AdminDieselPriceModal currentPrice={dieselPrice} />}
+
+          <div className="flex items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3 shadow-sm dark:shadow-none">
+            <div>
+              <span className="text-xs text-slate-500 block">Total Outflow</span>
+              <span className="text-lg font-black text-rose-600 dark:text-rose-400">
+                {formatLKR(totalExpenseAmount)}
+              </span>
+            </div>
+            <div className="border-l border-slate-200 dark:border-slate-800 pl-4">
+              <span className="text-xs text-slate-500 block">Total Diesel</span>
+              <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                {totalFuelLiters.toFixed(1)} L
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Operational Expense Input Form */}
+      {/* Operational Expense Input Form with Live Diesel Price */}
       <AddExpenseForm
         jcbList={jcbList.map((j) => ({
           id: j.id,
           plateNumber: j.plateNumber,
           modelName: j.modelName,
         }))}
+        dieselPricePerLiter={dieselPrice}
       />
 
       {/* Expense Ledger Table */}

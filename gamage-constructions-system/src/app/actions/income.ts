@@ -3,27 +3,28 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { calculatePoints, RATE_PER_POINT } from "@/lib/calculations";
+import { calculateFromPoints, RATE_PER_POINT } from "@/lib/calculations";
 
 export async function createIncomeLog(formData: FormData) {
   const jcbId = formData.get("jcbId") as string;
   const clientName = (formData.get("clientName") as string)?.trim();
   const siteLocation = (formData.get("siteLocation") as string)?.trim();
   const logDateStr = formData.get("logDate") as string;
-  const startTime = formData.get("startTime") as string;
-  const endTime = formData.get("endTime") as string;
+  const pointsInput = parseFloat(formData.get("points") as string);
+  const startTime = (formData.get("startTime") as string)?.trim() || "08:00";
+  const endTime = (formData.get("endTime") as string)?.trim() || "N/A";
   const paymentStatus = (formData.get("paymentStatus") as string) || "PENDING";
   const notes = (formData.get("notes") as string)?.trim() || null;
 
-  if (!jcbId || !clientName || !siteLocation || !logDateStr || !startTime || !endTime) {
-    return { error: "Please provide all required shift details." };
+  if (!jcbId || !clientName || !siteLocation || !logDateStr || isNaN(pointsInput)) {
+    return { error: "Please enter JCB, client, location, date, and points." };
   }
 
-  // Live calculation verification on server side
-  const calculation = calculatePoints(startTime, endTime);
-  if (calculation.totalMinutes <= 0) {
-    return { error: "End time must be after start time." };
+  if (pointsInput <= 0) {
+    return { error: "Points must be greater than 0.0" };
   }
+
+  const { points, totalCharge, equivalentHours } = calculateFromPoints(pointsInput);
 
   try {
     await prisma.incomeLog.create({
@@ -34,10 +35,10 @@ export async function createIncomeLog(formData: FormData) {
         logDate: new Date(logDateStr),
         startTime,
         endTime,
-        durationHours: calculation.durationHours,
-        points: calculation.points,
+        durationHours: equivalentHours,
+        points,
         ratePerPoint: RATE_PER_POINT,
-        totalCharge: calculation.totalCharge,
+        totalCharge,
         paymentStatus,
         notes,
       },
@@ -47,8 +48,8 @@ export async function createIncomeLog(formData: FormData) {
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/jcb");
     return { success: true };
-  } catch {
-    return { error: "Failed to record income log. Please try again." };
+  } catch (error) {
+    return { error: "Failed to record shift points log. Please try again." };
   }
 }
 

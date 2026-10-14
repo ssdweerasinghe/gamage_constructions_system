@@ -2,66 +2,45 @@
 
 /**
  * Gamage Constructions Standard Rate Configuration:
- * 1 Point = 1 Hour (60 mins)
+ * 1.0 Point = 1 Hour (60 mins)
  * 0.1 Point = 6 mins
- * Base Charge = LKR 7,000.00 per 1.0 point
+ * Fixed Charge = LKR 7,000.00 per 1.0 point
  */
 export const RATE_PER_POINT = 7000.0;
 
-export interface CalculationResult {
-  totalMinutes: number;
-  durationHours: number;
+export interface PointsCalculationResult {
   points: number;
   totalCharge: number;
+  equivalentHours: number;
+  equivalentMinutes: number;
+  durationLabel: string;
 }
 
 /**
- * Calculates billable points and total charge from start and end times ("HH:MM" format).
- * Handles standard daytime shifts as well as shifts extending past midnight.
- * 
- * Logic:
- * - 60 minutes = 1.0 point (0.1 point per 6-minute increment)
- * - Rounds to one decimal place to enforce the 0.1 pt / 6 min precision
+ * Primary Engine: Computes total charge and work duration directly from billable points.
  */
-export function calculatePoints(startTimeStr: string, endTimeStr: string): CalculationResult {
-  if (!startTimeStr || !endTimeStr) {
-    return {
-      totalMinutes: 0,
-      durationHours: 0,
-      points: 0,
-      totalCharge: 0,
-    };
-  }
-
-  const [startH, startM] = startTimeStr.split(":").map(Number);
-  const [endH, endM] = endTimeStr.split(":").map(Number);
-
-  const startTotalMinutes = startH * 60 + startM;
-  let endTotalMinutes = endH * 60 + endM;
-
-  // Handle shifts crossing midnight (e.g., 22:00 to 02:00)
-  if (endTotalMinutes < startTotalMinutes) {
-    endTotalMinutes += 24 * 60;
-  }
-
-  const totalMinutes = endTotalMinutes - startTotalMinutes;
-  const durationHours = parseFloat((totalMinutes / 60).toFixed(2));
-
-  // 1 hr = 1.0 point, 6 min = 0.1 point
-  // Round to 1 decimal place: (minutes / 60) * 10 / 10
-  const points = Math.round((totalMinutes / 60) * 10) / 10;
+export function calculateFromPoints(pointsInput: number | string): PointsCalculationResult {
+  const points = Math.max(0, Math.round((Number(pointsInput) || 0) * 10) / 10);
   const totalCharge = Math.round(points * RATE_PER_POINT * 100) / 100;
+  
+  // 1 pt = 60 mins -> 0.1 pt = 6 mins
+  const totalMinutes = Math.round(points * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  const durationLabel = `${hours}h ${minutes > 0 ? `${minutes}m` : ""}`.trim();
 
   return {
-    totalMinutes,
-    durationHours,
     points,
     totalCharge,
+    equivalentHours: parseFloat((totalMinutes / 60).toFixed(2)),
+    equivalentMinutes: totalMinutes,
+    durationLabel: durationLabel || "0h",
   };
 }
 
 /**
- * Formats numeric values to Sri Lankan Rupee currency display (e.g., "LKR 31,500.00").
+ * Formats numeric values to Sri Lankan Rupee display (e.g., "LKR 35,000.00").
  */
 export function formatLKR(amount: number): string {
   return new Intl.NumberFormat("en-LK", {
@@ -70,11 +49,4 @@ export function formatLKR(amount: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
-}
-
-/**
- * Calculates net operational profit for a machine or the whole fleet.
- */
-export function calculateNetProfit(totalIncome: number, totalExpenses: number): number {
-  return totalIncome - totalExpenses;
 }
