@@ -1,15 +1,16 @@
 // src/app/login/page.tsx
 "use client";
 
-import { useActionState } from "react";
-import { loginOwner } from "@/app/actions/auth";
-import { Lock, Mail, ShieldAlert, Truck } from "lucide-react";
+import { useState, useActionState } from "react";
+import { loginUser } from "@/app/actions/auth";
+import { Lock, Mail, ShieldAlert, Truck, ShieldCheck, UserCheck } from "lucide-react";
 
 export default function LoginPage() {
-  const [state, formAction, isPending] = useActionState(loginOwner, null);
+  const [state, formAction, isPending] = useActionState(loginUser, null);
+  const [selectedRole, setSelectedRole] = useState<"OWNER" | "ADMIN">("OWNER");
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center items-center gap-3">
           <div className="bg-amber-500 p-3 rounded-2xl shadow-lg shadow-amber-500/20">
@@ -19,36 +20,68 @@ export default function LoginPage() {
         <h2 className="mt-4 text-center text-3xl font-extrabold tracking-tight text-white">
           Gamage Constructions
         </h2>
-        <p className="mt-1 text-center text-sm font-medium text-amber-500 uppercase tracking-widest">
-          Executive Fleet & Profit Portal
+        <p className="mt-1 text-center text-xs font-bold text-amber-500 uppercase tracking-widest">
+          Fleet & Accounting Portal
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-slate-800/90 backdrop-blur-xl py-8 px-6 shadow-2xl rounded-2xl sm:px-10 border border-slate-700/60">
-          <form action={formAction} className="space-y-6">
+        <div className="bg-slate-900 border border-slate-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
+          {/* Role Selector Tabs */}
+          <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800 mb-6">
+            <button
+              type="button"
+              onClick={() => setSelectedRole("OWNER")}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                selectedRole === "OWNER"
+                  ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <UserCheck className="h-4 w-4" />
+              <span>Owner Login</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedRole("ADMIN")}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                selectedRole === "ADMIN"
+                  ? "bg-rose-500 text-white shadow-md shadow-rose-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Admin Login</span>
+            </button>
+          </div>
+
+          <form action={formAction} className="space-y-5">
             {state?.error && (
-              <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 text-rose-400 text-sm">
-                <ShieldAlert className="h-5 w-5 shrink-0" />
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 text-rose-400 text-xs font-semibold">
+                <ShieldAlert className="h-4 w-4 shrink-0" />
                 <span>{state.error}</span>
               </div>
             )}
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Owner Email Address
+                {selectedRole === "ADMIN" ? "Admin Email" : "Owner Email"}
               </label>
-              <div className="mt-2 relative rounded-xl shadow-sm">
+              <div className="mt-1.5 relative rounded-xl">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                   <Mail className="h-4 w-4" />
                 </div>
                 <input
+                  key={selectedRole}
                   type="email"
                   name="email"
-                  defaultValue="owner@gamageconstructions.lk"
+                  defaultValue={
+                    selectedRole === "ADMIN"
+                      ? "admin@gamageconstructions.lk"
+                      : "owner@gamageconstructions.lk"
+                  }
                   required
-                  placeholder="owner@gamageconstructions.lk"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
@@ -57,17 +90,19 @@ export default function LoginPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Password
               </label>
-              <div className="mt-2 relative rounded-xl shadow-sm">
+              <div className="mt-1.5 relative rounded-xl">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                   <Lock className="h-4 w-4" />
                 </div>
                 <input
+                  key={selectedRole + "-pwd"}
                   type="password"
                   name="password"
-                  defaultValue="Gamage@2026"
+                  defaultValue={
+                    selectedRole === "ADMIN" ? "Admin@Gamage2026" : "Gamage@2026"
+                  }
                   required
-                  placeholder="••••••••••••"
-                  className="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
@@ -75,17 +110,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-amber-500 disabled:opacity-50 transition-all shadow-lg shadow-amber-500/20 active:scale-[0.98]"
+              className={`w-full flex justify-center py-3 px-4 rounded-xl text-sm font-bold text-slate-950 transition-all active:scale-[0.98] ${
+                selectedRole === "ADMIN"
+                  ? "bg-rose-500 hover:bg-rose-400 text-white shadow-lg shadow-rose-500/20"
+                  : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20"
+              }`}
             >
-              {isPending ? "Authenticating..." : "Sign In to Command Center"}
+              {isPending
+                ? "Verifying Session..."
+                : selectedRole === "ADMIN"
+                ? "Sign In as Administrator"
+                : "Sign In as Owner"}
             </button>
           </form>
-
-          <div className="mt-6 border-t border-slate-700/60 pt-4 text-center">
-            <p className="text-xs text-slate-500">
-              Authorized Owner Access Only &bull; 256-bit Encrypted
-            </p>
-          </div>
         </div>
       </div>
     </div>
