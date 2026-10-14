@@ -7,6 +7,7 @@ import RecordPaymentModal from "@/components/RecordPaymentModal";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import EditPaymentModal from "@/components/EditPaymentModal";
 import DeletePaymentButton from "@/components/DeletePaymentButton";
+import AdminDeleteButton from "@/components/AdminDeleteButton";
 import { connection } from "next/server";
 import Link from "next/link";
 import {
@@ -17,7 +18,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  FileSpreadsheet,
   Receipt,
   Check,
   History,
@@ -143,7 +143,7 @@ export default async function ContractorDetailPage({
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Navigation Tabs */}
       <div className="border-b border-slate-200 dark:border-slate-800 flex gap-4">
         <Link
           href={`/dashboard/clients/${encodeURIComponent(clientName)}?tab=invoices`}
@@ -169,7 +169,7 @@ export default async function ContractorDetailPage({
         </Link>
       </div>
 
-      {/* TAB 1: SHIFTS / INVOICES */}
+      {/* TAB 1: SHIFT INVOICES */}
       {tab === "invoices" && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
           <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -179,125 +179,141 @@ export default async function ContractorDetailPage({
             <span className="text-xs text-slate-400">Chronological billing records</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-              <thead className="bg-slate-50 dark:bg-slate-950/60 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-5 py-3">Date / JCB</th>
-                  <th className="px-5 py-3">Site Location</th>
-                  <th className="px-5 py-3 text-center">Points</th>
-                  <th className="px-5 py-3 text-right">Bill Amount</th>
-                  <th className="px-5 py-3 text-right">Paid</th>
-                  <th className="px-5 py-3 text-right">Balance</th>
-                  <th className="px-5 py-3 text-center">Status</th>
-                  <th className="px-5 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium text-xs">
-                {shifts.map((inv) => {
-                  const invoicePayload = {
-                    invoiceNumber: inv.id.slice(-6).toUpperCase(),
-                    clientName: inv.clientName,
-                    siteLocation: inv.siteLocation,
-                    date: new Date(inv.logDate).toLocaleDateString("en-GB"),
-                    jcbPlate: inv.jcb.plateNumber,
-                    jcbModel: inv.jcb.modelName,
-                    driverName: inv.jcb.driverName,
-                    startTime: inv.startTime || "Shift",
-                    endTime: inv.endTime || "Standard",
-                    durationHours: inv.durationHours,
-                    points: inv.points,
-                    ratePerPoint: inv.ratePerPoint,
-                    totalCharge: inv.totalCharge,
-                    paymentStatus: inv.paymentStatus,
-                    notes: inv.notes,
-                  };
+          {shifts.length === 0 ? (
+            <div className="p-10 text-center text-slate-500 text-sm">
+              No shift invoices recorded for this contractor.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                <thead className="bg-slate-50 dark:bg-slate-950/60 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="px-5 py-3">Date / JCB</th>
+                    <th className="px-5 py-3">Site Location</th>
+                    <th className="px-5 py-3 text-center">Points</th>
+                    <th className="px-5 py-3 text-right">Bill Amount</th>
+                    <th className="px-5 py-3 text-right">Paid</th>
+                    <th className="px-5 py-3 text-right">Balance</th>
+                    <th className="px-5 py-3 text-center">Status</th>
+                    <th className="px-5 py-3 text-center">Action</th>
+                    {isAdmin && <th className="px-5 py-3 text-center">Admin</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium text-xs">
+                  {shifts.map((inv) => {
+                    const invoicePayload = {
+                      invoiceNumber: inv.id.slice(-6).toUpperCase(),
+                      clientName: inv.clientName,
+                      siteLocation: inv.siteLocation,
+                      date: new Date(inv.logDate).toLocaleDateString("en-GB"),
+                      jcbPlate: inv.jcb.plateNumber,
+                      jcbModel: inv.jcb.modelName,
+                      driverName: inv.jcb.driverName,
+                      startTime: inv.startTime || "Shift",
+                      endTime: inv.endTime || "Standard",
+                      durationHours: inv.durationHours,
+                      points: inv.points,
+                      ratePerPoint: inv.ratePerPoint,
+                      totalCharge: inv.totalCharge,
+                      paymentStatus: inv.paymentStatus,
+                      notes: inv.notes,
+                    };
 
-                  return (
-                    <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                      <td className="px-5 py-4">
-                        <div className="font-mono font-bold text-amber-600 dark:text-amber-500 mb-0.5">
-                          {inv.jcb.plateNumber}
-                        </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(inv.logDate).toLocaleDateString("en-GB")}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="text-slate-900 dark:text-white flex items-center gap-1 font-semibold">
-                          <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                          <span>{inv.siteLocation}</span>
-                        </div>
-                        {inv.notes && (
-                          <div className="text-[11px] text-slate-400 italic mt-0.5">
-                            {inv.notes}
+                    return (
+                      <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <td className="px-5 py-4">
+                          <div className="font-mono font-bold text-amber-600 dark:text-amber-500 mb-0.5">
+                            {inv.jcb.plateNumber}
                           </div>
-                        )}
-                      </td>
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(inv.logDate).toLocaleDateString("en-GB")}
+                          </div>
+                        </td>
 
-                      <td className="px-5 py-4 text-center font-mono font-bold text-amber-600 dark:text-amber-400">
-                        {inv.points.toFixed(1)} PTS
-                      </td>
+                        <td className="px-5 py-4">
+                          <div className="text-slate-900 dark:text-white flex items-center gap-1 font-semibold">
+                            <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{inv.siteLocation}</span>
+                          </div>
+                          {inv.notes && (
+                            <div className="text-[11px] text-slate-400 italic mt-0.5">
+                              {inv.notes}
+                            </div>
+                          )}
+                        </td>
 
-                      <td className="px-5 py-4 text-right font-bold text-slate-900 dark:text-white">
-                        {formatLKR(inv.totalCharge)}
-                      </td>
+                        <td className="px-5 py-4 text-center font-mono font-bold text-amber-600 dark:text-amber-400">
+                          {inv.points.toFixed(1)} PTS
+                        </td>
 
-                      <td className="px-5 py-4 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
-                        {formatLKR(inv.amountPaid)}
-                      </td>
+                        <td className="px-5 py-4 text-right font-bold text-slate-900 dark:text-white">
+                          {formatLKR(inv.totalCharge)}
+                        </td>
 
-                      <td className="px-5 py-4 text-right font-black">
-                        {inv.balanceDue > 0.05 ? (
-                          <span className="text-rose-600 dark:text-rose-400">
-                            {formatLKR(inv.balanceDue)}
-                          </span>
-                        ) : (
-                          <span className="text-emerald-600 dark:text-emerald-400">LKR 0.00</span>
-                        )}
-                      </td>
+                        <td className="px-5 py-4 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
+                          {formatLKR(inv.amountPaid)}
+                        </td>
 
-                      <td className="px-5 py-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                            inv.paymentStatus === "PAID"
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                              : inv.paymentStatus === "PARTIAL"
-                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-                              : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                          }`}
-                        >
-                          {inv.paymentStatus === "PAID" ? (
-                            <CheckCircle2 className="h-3 w-3" />
+                        <td className="px-5 py-4 text-right font-black">
+                          {inv.balanceDue > 0.05 ? (
+                            <span className="text-rose-600 dark:text-rose-400">
+                              {formatLKR(inv.balanceDue)}
+                            </span>
                           ) : (
-                            <AlertCircle className="h-3 w-3" />
+                            <span className="text-emerald-600 dark:text-emerald-400">LKR 0.00</span>
                           )}
-                          {inv.paymentStatus}
-                        </span>
-                      </td>
+                        </td>
 
-                      <td className="px-5 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          {inv.balanceDue > 0.05 && (
-                            <RecordPaymentModal
-                              incomeLogId={inv.id}
-                              clientName={inv.clientName}
-                              jcbPlate={inv.jcb.plateNumber}
-                              totalCharge={inv.totalCharge}
-                              amountPaid={inv.amountPaid}
-                            />
-                          )}
-                          <DownloadInvoiceButton invoiceData={invoicePayload} />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <td className="px-5 py-4 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                              inv.paymentStatus === "PAID"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                : inv.paymentStatus === "PARTIAL"
+                                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                                : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                            }`}
+                          >
+                            {inv.paymentStatus === "PAID" ? (
+                              <CheckCircle2 className="h-3 w-3" />
+                            ) : (
+                              <AlertCircle className="h-3 w-3" />
+                            )}
+                            {inv.paymentStatus}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            {inv.balanceDue > 0.05 && (
+                              <RecordPaymentModal
+                                incomeLogId={inv.id}
+                                clientName={inv.clientName}
+                                jcbPlate={inv.jcb.plateNumber}
+                                totalCharge={inv.totalCharge}
+                                amountPaid={inv.amountPaid}
+                              />
+                            )}
+                            <DownloadInvoiceButton invoiceData={invoicePayload} />
+                          </div>
+                        </td>
+
+                        {/* Admin Delete Action for Shift Invoice */}
+                        {isAdmin && (
+                          <td className="px-5 py-4 text-center">
+                            <div className="flex justify-center">
+                              <AdminDeleteButton id={inv.id} type="INCOME" />
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -308,7 +324,7 @@ export default async function ContractorDetailPage({
             <h3 className="font-bold text-slate-900 dark:text-white text-sm">
               Contractor Installment Audit Trail
             </h3>
-            <span className="text-xs text-slate-400">Every tranche deposited</span>
+            <span className="text-xs text-slate-400">Individual tranche deposits</span>
           </div>
 
           {paymentHistory.length === 0 ? (
@@ -357,9 +373,10 @@ export default async function ContractorDetailPage({
                         {formatLKR(pmt.amount)}
                       </td>
 
+                      {/* Admin Edit & Delete for Tranche Payment */}
                       {isAdmin && (
                         <td className="px-5 py-3.5 text-center">
-                          <div className="flex items-center justify-center gap-1">
+                          <div className="flex items-center justify-center gap-1.5">
                             <EditPaymentModal
                               payment={{
                                 id: pmt.id,

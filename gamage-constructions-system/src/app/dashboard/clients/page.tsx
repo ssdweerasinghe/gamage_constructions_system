@@ -1,8 +1,10 @@
 // src/app/dashboard/clients/page.tsx
 import { getClientCreditData } from "@/app/actions/payments";
+import { getCurrentUser } from "@/lib/auth";
 import ContractorInstallmentModal from "@/components/ContractorInstallmentModal";
 import RecordPaymentModal from "@/components/RecordPaymentModal";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
+import AdminDeleteButton from "@/components/AdminDeleteButton";
 import { formatLKR } from "@/lib/calculations";
 import { connection } from "next/server";
 import Link from "next/link";
@@ -26,7 +28,12 @@ export default async function ClientLedgerPage({
 }) {
   await connection();
   const { filter, client: selectedClient } = await searchParams;
-  const { invoices, clients, metrics } = await getClientCreditData();
+  const [{ invoices, clients, metrics }, user] = await Promise.all([
+    getClientCreditData(),
+    getCurrentUser(),
+  ]);
+
+  const isAdmin = user?.role === "ADMIN";
 
   // Apply filters
   const filteredInvoices = invoices.filter((item) => {
@@ -256,6 +263,7 @@ export default async function ClientLedgerPage({
                   <th className="px-5 py-3.5 text-right">Balance Due</th>
                   <th className="px-5 py-3.5 text-center">Status</th>
                   <th className="px-5 py-3.5 text-center">Action</th>
+                  {isAdmin && <th className="px-5 py-3.5 text-center">Admin</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium text-xs">
@@ -359,6 +367,15 @@ export default async function ClientLedgerPage({
                           <DownloadInvoiceButton invoiceData={invoicePayload} />
                         </div>
                       </td>
+
+                      {/* Admin Delete Action */}
+                      {isAdmin && (
+                        <td className="px-5 py-4 text-center">
+                          <div className="flex justify-center">
+                            <AdminDeleteButton id={inv.id} type="INCOME" />
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
